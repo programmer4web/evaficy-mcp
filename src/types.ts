@@ -5,6 +5,28 @@ export interface ApiErrorBody {
   code?: string;
 }
 
+export interface GeneratedTestCase {
+  title: string;
+  description: string;
+  preconditions: string[];
+  steps: { stepNumber: number; description: string; expectedResult: string }[];
+  testData: { title: string; value: string }[];
+  expectedResult: string;
+  priority?: string;
+  status?: string;
+  intelligence?: { selectedType: string; affectedPage?: string; category?: string; version?: string };
+}
+
+export interface GenerationResult {
+  testCases: GeneratedTestCase[];
+}
+
+export interface GenerationJobEvent {
+  status: "pending" | "running" | "done" | "failed";
+  result: GenerationResult | null;
+  error: string | null;
+}
+
 export interface UserRef {
   _id: string;
   email: string;

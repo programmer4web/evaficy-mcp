@@ -8,8 +8,18 @@ export class EvaficyApiError extends Error {
   }
 }
 
+async function parseErrorBody(response: Response): Promise<EvaficyApiError> {
+  const body = (await response.json().catch(() => ({}))) as unknown as ApiErrorBody;
+  const message = body.message || body.error || `Request failed with status ${response.status}`;
+  return new EvaficyApiError(response.status, message, body.code);
+}
+
 export class EvaficyClient {
   constructor(private config: Config) {}
+
+  private authHeaders(accept: string): Record<string, string> {
+    return { Authorization: `Bearer ${this.config.token}`, Accept: accept };
+  }
 
   async get<T>(path: string, query?: Record<string, string | number | undefined>): Promise<T> {
     const url = new URL(this.config.apiUrl + path);
@@ -19,22 +29,59 @@ export class EvaficyClient {
       }
     }
 
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${this.config.token}`,
-        Accept: "application/json",
-      },
+    const response = await fetch(url, { method: "GET", headers: this.authHeaders("application/json") });
+    if (!response.ok) throw await parseErrorBody(response);
+    return (await response.json()) as T;
+  }
+
+  async post<T>(path: string, body: Record<string, unknown>): Promise<T> {
+    const response = await fetch(this.config.apiUrl + path, {
+      method: "POST",
+      headers: { ...this.authHeaders("application/json"), "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     });
+    if (!response.ok) throw await parseErrorBody(response);
+    return (await response.json()) as T;
+  }
 
-    const body = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+  /** Consumes a Server-Sent Events stream, yielding each event's parsed `data:` JSON payload. */
+  async *streamSSE(path: string, signal: AbortSignal): AsyncGenerator<unknown> {
+    const response = await fetch(this.config.apiUrl + path, {
+      method: "GET",
+      headers: this.authHeaders("text/event-stream"),
+      signal,
+    });
+    if (!response.ok) throw await parseErrorBody(response);
+    if (!response.body) throw new Error("No response body for SSE stream");
 
-    if (!response.ok) {
-      const errorBody = body as unknown as ApiErrorBody;
-      const message = errorBody.message || errorBody.error || `Request failed with status ${response.status}`;
-      throw new EvaficyApiError(response.status, message, errorBody.code);
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let sepIndex: number;
+        while ((sepIndex = buffer.indexOf("\n\n")) !== -1) {
+          const rawEvent = buffer.slice(0, sepIndex);
+          buffer = buffer.slice(sepIndex + 2);
+
+          const dataLines = rawEvent.split("\n").filter((line) => line.startsWith("data:"));
+          if (dataLines.length === 0) continue;
+
+          const jsonText = dataLines.map((line) => line.slice(5).trimStart()).join("\n");
+          try {
+            yield JSON.parse(jsonText);
+          } catch {
+            // Malformed frame — skip rather than crash the whole stream.
+          }
+        }
+      }
+    } finally {
+      reader.cancel().catch(() => {});
     }
-
-    return body as T;
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "evaficy-mcp",
-  "version": "0.5.0",
-  "description": "MCP server for Evaficy Smart Test — read projects, test cases and run results from an AI client",
+  "version": "0.5.1",
+  "description": "MCP server for Evaficy Smart Test — read projects, test cases and run results, and generate AI test cases",
   "type": "module",
   "main": "dist/server.js",
   "bin": {
