@@ -2,18 +2,27 @@
 
 An MCP (Model Context Protocol) server for [Evaficy Smart Test](https://app.evaficy.com). It lets an AI client (Claude Code, Cline, Cursor, etc.) read your projects, test cases and run results directly from your editor.
 
-This is **v0.5**: a light, read-only first slice. Six tools, no write actions yet.
+This is **v0.5.1**: six read-only tools plus one write tool, `generate_test_cases`.
 
 ## Tools
 
-| Tool | What it does |
-|---|---|
-| `list_projects` | List all projects you own or belong to |
-| `get_project` | Full detail for one project (members, environments, client) |
-| `list_test_cases` | List test-case scenarios for a project |
-| `get_test_case` | Full scenario detail: steps, test data, validation status |
-| `list_runs` | List test runs, optionally filtered by project/status |
-| `get_run_results` | A run's execution detail plus its condensed report |
+| Tool | Type | What it does |
+|---|---|---|
+| `list_projects` | read | List all projects you own or belong to |
+| `get_project` | read | Full detail for one project (members, environments, client) |
+| `list_test_cases` | read | List test-case scenarios for a project |
+| `get_test_case` | read | Full scenario detail: steps, test data, validation status |
+| `list_runs` | read | List test runs, optionally filtered by project/status |
+| `get_run_results` | read | A run's execution detail plus its condensed report |
+| `generate_test_cases` | **write** | Generate ~7 AI test cases from a requirement, optionally saving them as a new scenario in a project |
+
+### About `generate_test_cases`
+
+- Takes a `testType`, a `requirement` (the main input — the more specific, the better the result), and optionally `affectedPage` and `additionalCriteria`.
+- **Preview by default.** Pass `saveToProject` (`{projectId, scenarioName}`) to persist the result as a new scenario instead — without it, nothing is saved anywhere.
+- **Consumes your real AI-generation quota**, the same one the app's UI uses: Basic = 5 generations **lifetime** (never resets), Advanced = 200/month, Enterprise = 500/month. There's no undo on a Basic-plan call.
+- Generation can take a little while; if it's still running after ~90 seconds the tool returns a `jobId` instead of a result — call it again with `resumeJobId` set to that value to pick up where it left off (results are only kept for 10 minutes).
+- The number of test cases generated (~7) isn't configurable — that's fixed by the underlying platform feature.
 
 ## 1. Create a Personal Access Token
 
@@ -55,7 +64,7 @@ Add to Cline's MCP settings file:
 
 ## Notes
 
-- All six tools are read-only wrappers over the existing Evaficy API — nothing is created, modified, or deleted.
+- The six read tools never create, modify, or delete anything. `generate_test_cases` is the one exception — it always calls the platform's AI generator (consuming quota), and will also create a new scenario if you pass `saveToProject`.
 - Your token is read from the environment only; it is never logged or written to disk by this server.
 - A token inherits the permissions of the account that created it.
 
