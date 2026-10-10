@@ -9,7 +9,7 @@ export function loadConfig(): Config {
   const token = process.env.EVAFICY_TOKEN;
   if (!token) {
     console.error(
-      "EVAFICY_TOKEN is not set. Create a personal access token in Evaficy " +
+      "EVAFICY_TOKEN is not set. Create a personal access token in Evaficy Smart Test " +
         "(Settings > API tokens) and pass it as the EVAFICY_TOKEN environment variable."
     );
     process.exit(1);

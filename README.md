@@ -17,18 +17,17 @@ This is **v0.5**: a light, read-only first slice. Six tools, no write actions ye
 
 ## 1. Create a Personal Access Token
 
-In the Evaficy app: **Settings → API tokens → Create Token**.
+In the Evaficy app https://app.evaficy.com login then go to: **Settings → API tokens → Create Token**.
 
-- Give it a name you'll recognize later (e.g. "MCP - laptop").
+- Give it a name you'll recognize later (e.g. "Evaficy MCP - laptop").
 - The raw token is shown **once**, right after creation — copy it immediately, it can't be retrieved again.
 - The dialog doesn't currently let you set an expiry from the UI; the token won't expire unless you set one via the API directly. Treat it like a password and revoke it from the same Settings page if it's ever exposed.
 
 ## 2. Configure your client
 
-Set two environment variables:
+Set the environment variable in .env file:
 
 - `EVAFICY_TOKEN` — the token from step 1 (required)
-- `EVAFICY_API_URL` — defaults to `https://app.evaficy.com`, override only for local backend development
 
 ### Claude Code
 
@@ -58,7 +57,7 @@ Add to Cline's MCP settings file:
 
 - All six tools are read-only wrappers over the existing Evaficy API — nothing is created, modified, or deleted.
 - Your token is read from the environment only; it is never logged or written to disk by this server.
-- A token inherits the permissions of the account that created it — if you can't see a project in the app, the MCP won't be able to see it either.
+- A token inherits the permissions of the account that created it.
 
 ## License
 
