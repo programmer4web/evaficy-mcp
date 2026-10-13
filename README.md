@@ -62,6 +62,26 @@ Add to Cline's MCP settings file:
 }
 ```
 
+## Example flow
+
+Once configured, you just talk to your AI client in plain language — it picks the right tool and fills in the parameters. A typical session, going from "what do I have" to "generate and save tests for it":
+
+**1. List your projects**
+
+> List my Evaficy projects.
+
+Calls `list_projects`. Returns every project you own or belong to, each with its id, your role, and counts (scenarios, members) — this is how you find the project id you'll need in step 2.
+
+**2. Generate test cases for one of them**
+
+> Generate functional test cases for the Checkout page in project `<projectId from step 1>` (or `<Project Name>`) requirement: "Users must be able to apply a discount code before payment and see the updated total." Save them as a new scenario called "Discount Code at Checkout".
+
+Calls `generate_test_cases` with `saveToProject` set. Returns the ~7 AI-generated test cases (title, steps, expected results, test data) together with the id/name of the scenario that was just created in that project — from here it's immediately visible in the Evaficy app too.
+
+Leave out the "save them as..." part and it returns the same generated test cases as a preview only, without creating anything — useful for reviewing before you decide whether to keep them.
+
+**A note on project names vs. IDs:** every tool's `projectId` input needs a real project id, not a name — but you don't have to look that up yourself. Referring to a project by name in your prompt (like "the Sample Project" above) works fine: your AI client resolves it to an id itself, by calling `list_projects` first (as in step 1) and matching the name, then passing that id to the tool. This happens automatically as part of the conversation — it's not something this server does internally.
+
 ## Notes
 
 - The six read tools never create, modify, or delete anything. `generate_test_cases` is the one exception — it always calls the platform's AI generator (consuming quota), and will also create a new scenario if you pass `saveToProject`.
