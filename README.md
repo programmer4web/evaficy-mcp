@@ -2,7 +2,9 @@
 
 An MCP (Model Context Protocol) server for [Evaficy Smart Test](https://app.evaficy.com). It lets an AI client (Claude Code, Cline, Cursor, etc.) read your projects, test cases and run results directly from your editor.
 
-This is **v0.5.1**: six read-only tools plus one write tool, `generate_test_cases`.
+More info and setup guide: https://app.evaficy.com/evaficy-mcp
+
+This is **v0.5.3**: six read-only tools plus one write tool, `generate_test_cases`.
 
 ## Tools
 
@@ -34,7 +36,9 @@ In the Evaficy app https://app.evaficy.com login then go to: **Settings → API 
 
 ## 2. Configure your client
 
-Set the environment variable in .env file:
+Requires Node.js 18 or newer. The package runs through `npx`, so there is nothing to install globally.
+
+Pass the token to the server as an environment variable in your client's MCP config (the server doesn't read `.env` files):
 
 - `EVAFICY_TOKEN` — the token from step 1 (required)
 
@@ -62,6 +66,8 @@ Add to Cline's MCP settings file:
 }
 ```
 
+To check the connection, start by asking your client: "List my Evaficy projects."
+
 ## Example flow
 
 Once configured, you just talk to your AI client in plain language — it picks the right tool and fills in the parameters. A typical session, going from "what do I have" to "generate and save tests for it":
@@ -87,6 +93,12 @@ Leave out the "save them as..." part and it returns the same generated test case
 - The six read tools never create, modify, or delete anything. `generate_test_cases` is the one exception — it always calls the platform's AI generator (consuming quota), and will also create a new scenario if you pass `saveToProject`.
 - Your token is read from the environment only; it is never logged or written to disk by this server.
 - A token inherits the permissions of the account that created it.
+
+## Links
+
+- Evaficy app: https://app.evaficy.com
+- Evaficy MCP page: https://app.evaficy.com/evaficy-mcp
+- npm package: https://www.npmjs.com/package/evaficy-mcp
 
 ## License
 
