@@ -41,7 +41,7 @@ Set the environment variable in .env file:
 ### Claude Code
 
 ```
-claude mcp add evaficy -e EVAFICY_TOKEN=<your-token> -- npx evaficy-mcp
+claude mcp add evaficy -e "EVAFICY_TOKEN=<your-token>" "--" npx evaficy-mcp
 ```
 
 ### Cline (VS Code)
